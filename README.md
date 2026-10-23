@@ -12,13 +12,13 @@
 - 対応: 日本版。更新データ v17 あり／なし（v0）のどちらのセーブも同じ形式で読めます
 
 ## 使い方
-1. `savedata.bin` を**必ずバックアップ**
-2. エディタを開いて `savedata.bin` を読み込む
+1. **savedata.bin** を**必ずバックアップ**
+2. エディタを開いて **savedata.bin** を読み込む
 3. 好きな項目を編集して保存
-4. ダウンロードされた `savedata.bin` で元のファイルを置き換える
+4. ダウンロードされた **savedata.bin** で元のファイルを置き換える
 
 ## 解析報告書
-セーブ構造の解析結果を `report.pdf` にまとめています。ROM まわりの記述は [naauao（sweshelo 氏）の lanai 資料](https://github.com/sweshelo/naauao/blob/main/lanai/README.md) と照合しています。
+セーブ構造の解析結果を [report.pdf](report.pdf) にまとめています。ROM まわりの記述は [naauao（sweshelo 氏）の lanai 資料](https://github.com/sweshelo/naauao/blob/main/lanai/README.md) と照合しています。
 
 ## 注意
 - 無保証・自己責任。**必ずバックアップを取ってから**使ってください
