@@ -91,6 +91,7 @@ img.ptn{width:32px;height:32px;border:1px solid var(--line);border-radius:4px;im
 canvas.fp{width:44px;height:44px;border:1px solid var(--line);border-radius:6px;image-rendering:pixelated;flex:none;background:#efe6d6;display:block}
 canvas.fp.dk{background:#7b6a58}
 canvas.fp.sk{background:#f6dcc0}
+.tone{display:inline-block;width:32px;height:32px;border-radius:6px;border:1px solid var(--line);flex:none}
 canvas.fp.hd{image-rendering:auto;background:#eee9df}
 .facegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 16px;margin-top:14px;align-items:start}
 .ff{display:grid;gap:4px;font-size:.8rem;color:var(--muted);min-width:0}
@@ -351,7 +352,7 @@ summary{cursor:pointer;font-weight:700}
           <tr><td>見た目</td><td class="mono">+0x64〜+0x74</td><td>+0x64 頭の形、+0x65 顔の形（輪郭）、+0x66 顔にかかる髪、+0x67 まゆげ、+0x68 め、+0x69 はな、+0x6A くち、+0x6B ほお、+0x6D 体格、+0x70 体の模様、+0x71/+0x72 体の色、+0x73 肌の色、+0x74 髪の色</td></tr>
           <tr><td>体の模様</td><td class="mono">+0x70（bodyPattern.bin）</td><td>更新なし（v0）は 0〜6、v17 は 0〜9（7 トラじま・8 レンガ・9 ダイヤが追加）。番号ごとの見本は body_ptn_01〜10.bch（白 = 体の色1、黒 = 体の色2）。11・12 は使われていないテクスチャ。範囲外の番号は単色で表示される。表の +4〜+7 は出やすさ：+4 子ども（両親の模様から選ぶ／両親が単色なら 1〜3 から）、+5 通常・種類6・7 の激レア、+6 Geki、+7 季節・コラボ・配信。子どもは体の色1と2が同じか、色2が「なし」「レア」だと単色になる</td></tr>
           <tr><td>捕まえたモンスター</td><td class="mono">+0x9C（u16）</td><td>確定（つかまえる5ばいでホワイトホーンを捕まえたセーブで 186 になった）。つかまえるアンテナ（系統 106）が保持するモンスターの番号。0 = なし。番号はモンスター名の表（4c2bd400）の ID。ゲームは「+0x9C が 0 でない」で呼び出す・逃がすを出す</td></tr>
-          <tr><td>入居日 / アンテナ / レベル / 経験値</td><td class="mono">+0x8C / +0x94 / +0x96 / +0x98</td><td>経験値は世代のレベル上限で切り詰められる</td></tr>
+          <tr><td>入居日 / アンテナ / レベル / 経験値</td><td class="mono">+0x08（+0x8C・+0x8E・+0x90） / +0x94 / +0x96 / +0x98</td><td>画面の入居日は +0x08（1999/1/1 0時からの秒数）。+0x8C〜+0x90 は 1999/1/2 からの日数で、同じ日を指す。経験値は世代のレベル上限で切り詰められる</td></tr>
           <tr><td>イベント開催</td><td class="mono">フラグ23番・24番</td><td>開始 = 2000/1/1 からのミリ秒、期間 = ナノ秒。112 = イベントキャッチ、113・114 = 期間限定ショップ</td></tr>
           <tr><td>アイテム</td><td class="mono">フラグ29番</td><td>アイテム番号ごとの所持数。144番 = 入手したことがある、152番 = ショップでの累計購入数</td></tr>
           <tr><td>アイテム 3000番以降（v17）</td><td class="mono">フラグ177番</td><td>177番は FlagDataReserve.bin で番号ごとに割り当てる予備領域。所持数 = 177番[1023+(番号−3000)] の下位16ビット（上位16ビット = ステージで拾った数）、入手済み = 177番[2023+(番号−3000)÷32] のビット、新着 = 2555〜、購入数 = 2055〜</td></tr>
@@ -375,7 +376,7 @@ summary{cursor:pointer;font-weight:700}
     </div>
     <div id="changes" class="empty">セーブを読み込んでください。</div>
     <div id="save-msg"></div>
-    <p class="muted small">保存されるのは <span class="mono">savedata.zip</span>（中身が savedata.bin）です。このページを自分のPCに保存して開いた場合は savedata.bin がそのまま保存されます。</p>
+    <p class="muted small">ふつうは <span class="mono">savedata.bin</span> がそのままダウンロードされます（Claude のページで開いた場合だけ、savedata.bin の入った savedata.zip になります）。</p>
   </section>
 </div>
 
@@ -390,7 +391,7 @@ const C={MIN_SIZE:0x1D160B, FLAG:0x2044, D1:0x149B64, JEWEL:0x2088, HASH:0x2050,
 const F={name:0x14, skill:0x62, hp:0x78, ap:0x7A, happy:0x80, gen:0x82, genmax:0x83, date:0x8C, antenna:0x94, tier:0x95, lv:0x96, exp:0x98, trait:0x9E, mon:0x9C};
 // appearance bytes inside the record (offset, max). Ranges come from the game's own clamps.
 const APPEAR=[["head","頭の形",0x64,70,"num"],["body","体格",0x6D,29,"num"],["pattern","体の模様",0x70,6,"pattern"],["color1","体の色1",0x71,38,"color"],["color2","体の色2",0x72,38,"color"],
-  ["skin","肌の色",0x73,5,"num"],["haircol","髪の色",0x74,11,"num"],["eye","め",0x68,63,"num"],["brow","まゆげ",0x67,31,"num"],["nose","はな",0x69,63,"num"],
+  ["skin","肌の色",0x73,5,"tone"],["haircol","髪の色",0x74,11,"tone"],["eye","め",0x68,63,"num"],["brow","まゆげ",0x67,31,"num"],["nose","はな",0x69,63,"num"],
   ["mouth","くち",0x6A,63,"num"],["cheek","ほお",0x6B,31,"num"],["skintex","顔の形",0x65,15,"num"],["hair","顔にかかる髪",0x66,50,"num"]];
 // Face parts: atlas cells. Offsets = the game's UV tables (code 0x1907f4, v17) in pixels; base cell = UV box of each
 // material's mesh in hum_head_proj.bch. Atlases: base ROM 96EB0000/hum_N_face_tex.bch ('parts', 'face_01', 512x512).
@@ -404,21 +405,34 @@ const FACE={
   skintex:["face_01",448,0,64,128,i=>{let c=i&7;if(i>=8)c=7-c;return[-c*64,(i>>3)*128]},16,16,"顔の輪郭。白い部分が肌の色の顔になる（12〜15 は模様入り）"],
   hair:["face_01",0,256,64,64,i=>i>=32?[(i-32)*64,192]:(i&3)?[(i>>2)*64,((i&3)-1)*64]:[(4+((i>>2)&3))*64,((i>>4)-2)*64],51,40,"0 = なし。茶色の部分が髪の色になる"],
   head:["head",0,0,64,64,i=>[(i&7)*64,(i>>3)*64],40,40,""]};
+// skin / hair colours: RGB tables in code.bin (0x49b080 skin ×6, 0x49b0c8 hair ×12; 0x190018 / 0x18ffb4 set them, out-of-range -> 0)
+const SKINRGB=["#f8dbc7","#ffd780","#ffbeaa","#e68c50","#d26946","#903c28"];
+const HAIRRGB=["#282828","#ffffff","#804507","#cd902a","#942a00","#ffdd20","#0059ff","#09a600","#a128ff","#ff6e80","#f75700","#f00011"];
+const SKINNM=["白っぽい","黄みがかった","ピンクがかった","小麦色","褐色","こげ茶"];
+const HAIRNM=["くろ","しろ","ちゃいろ","明るいちゃいろ","赤茶","きんいろ","あお","みどり","むらさき","ピンク","オレンジ","あか"];
 const FACEIMG={};
 function faceInit(done){if(typeof Image==="undefined"||!D.FACEATL)return;const src=Object.assign({},D.FACEATL,D.HEADIMG?{head:D.HEADIMG}:{});for(const k in src){const im=new Image();im.onload=()=>{FACEIMG[k]=im;if(done)done()};im.src=src[k]}}
-function faceDraw(cv,part,i){
+function faceDraw(cv,part,i,tint){
   const f=FACE[part], im=FACEIMG[f[0]]; const [ax,ay,w,h]=[f[1],f[2],f[3],f[4]];
   const sq=Math.max(w,h), mir=part==="skintex"; cv.width=mir?2*w:sq; cv.height=mir?h:sq;
   const g=cv.getContext&&cv.getContext("2d"); if(!g||!im)return cv;
   g.imageSmoothingEnabled=part==="head"; g.clearRect(0,0,cv.width,cv.height);
   if(i<0||i>=f[6])return cv;
   const [dx,dy]=f[5](i), x=(((ax+dx)%512)+512)%512, y=(((ay+dy)%512)+512)%512;
-  if(mir){g.save();g.scale(-1,1);g.drawImage(im,x,y,w,h,-w,0,w,h);g.restore();g.drawImage(im,x,y,w,h,w,0,w,h)}
-  else g.drawImage(im,x,y,w,h,(sq-w)/2,(sq-h)/2,w,h);
-  if(part==="hair"){g.globalCompositeOperation="source-in";g.fillStyle="#6b4a2b";g.fillRect(0,0,cv.width,cv.height);g.globalCompositeOperation="source-over"}
+  const paint=()=>{if(mir){g.save();g.scale(-1,1);g.drawImage(im,x,y,w,h,-w,0,w,h);g.restore();g.drawImage(im,x,y,w,h,w,0,w,h)}
+    else g.drawImage(im,x,y,w,h,(sq-w)/2,(sq-h)/2,w,h)};
+  paint();
+  if(part==="hair"&&!tint)tint=HAIRRGB[2];
+  if(tint&&(part==="hair"||part==="skintex")){
+    // keep a copy of the painted shape as the alpha mask: the mirrored face is drawn in two halves, so redrawing it
+    // with destination-in would erase each half in turn and leave nothing
+    const mk=document.createElement("canvas"); mk.width=cv.width; mk.height=cv.height; const mg=mk.getContext("2d"); if(mg)mg.drawImage(cv,0,0);
+    g.globalCompositeOperation="multiply";g.fillStyle=tint;g.fillRect(0,0,cv.width,cv.height);
+    if(mg){g.globalCompositeOperation="destination-in";g.drawImage(mk,0,0)}
+    g.globalCompositeOperation="source-over"}
   return cv;
 }
-function faceCanvas(part,i){const cv=document.createElement("canvas");cv.className="fp"+(part==="skintex"?" dk":part==="hair"?" sk":FACE[part][0]==="head"?" hd":"");cv.setAttribute("aria-hidden","true");return faceDraw(cv,part,i)}
+function faceCanvas(part,i,tint){const cv=document.createElement("canvas");cv.className="fp"+(part==="skintex"?" dk":part==="hair"?" sk":FACE[part][0]==="head"?" hd":"");cv.setAttribute("aria-hidden","true");return faceDraw(cv,part,i,tint)}
 function patTbl(){return GAMEVER===17?D.PATTERN17:D.PATTERN0}
 const PATTERNS=null; // replaced by patTbl() (bodyPattern.bin)
 function monList(){return GAMEVER===17?D.MON17:D.MON0}
@@ -537,7 +551,7 @@ function antName(a,withLv){const t=antennaTiers(a);if(!a)return "アンテナな
 function eqRead(b,off){const o={};EQ_SLOTS.forEach(([,so],k)=>{const v=rd(b,off+so,4);o["eq"+k]=v>=0x80000000?v-0x80000000:v});return o}
 function readRec(b,off){
   return {off,...eqRead(b,off),name:readName(b,off+F.name),nameId:rd(b,off+0x10,4),kind:(rd(b,off+6,2)>>4)&15,rare:rd(b,off+0x60,2),lv:rd(b,off+F.lv,2),exp:rd(b,off+F.exp,4),hp:rd(b,off+F.hp,2),ap:rd(b,off+F.ap,2),
-    happy:rd(b,off+F.happy,2)&0x3FF,tenshin:(rd(b,off+F.happy,2)>>14)&3,gen:b[off+F.gen]+1,genmax:b[off+F.genmax]+1,antenna:b[off+F.antenna],tier:b[off+F.tier],trait:b[off+F.trait],date:rd(b,off+F.date,2),skill:rd(b,off+F.skill,2),mon:rd(b,off+F.mon,2),
+    happy:rd(b,off+F.happy,2)&0x3FF,tenshin:(rd(b,off+F.happy,2)>>14)&3,gen:b[off+F.gen]+1,genmax:b[off+F.genmax]+1,antenna:b[off+F.antenna],tier:b[off+F.tier],trait:b[off+F.trait],date:recDay(b,off),skill:rd(b,off+F.skill,2),mon:rd(b,off+F.mon,2),
     ...Object.fromEntries(APPEAR.map(([k,,o])=>[k,b[off+o]]))};
 }
 function parseSave(b){
@@ -556,14 +570,19 @@ function applyEdits(orig,parsed,edits){
   for(const m of parsed.members){
     const e=edits.members[m.off]; if(!e)continue;
     const nm=Object.assign({},m,e);
-    writeRec(b,m.off,nm); if(e.name!=null) writeName(b,m.off,e.name); writeEq(b,m.off,e);
-    if(parsed.suspend){const bo=m.off+C.D1; if(readName(b,bo+F.name)===m.name){writeRec(b,bo,nm);if(e.name!=null)writeName(b,bo,e.name);writeEq(b,bo,e)}}
+    writeRec(b,m.off,nm); if(e.name!=null) writeName(b,m.off,e.name); writeEq(b,m.off,e); writeDate(b,m.off,e);
+    if(parsed.suspend){const bo=m.off+C.D1; if(readName(b,bo+F.name)===m.name){writeRec(b,bo,nm);if(e.name!=null)writeName(b,bo,e.name);writeEq(b,bo,e);writeDate(b,bo,e)}}
   }
   for(const [k,v] of Object.entries(edits.flags)){const [w,cat,idx,ai]=k.split(":");fset(b,blkOf(w),+cat,+idx,+ai,v)}
   if(edits.jewel!=null) wr(b,C.JEWEL,4,edits.jewel);
   fixHashes(b);
   return b;
 }
+// join date: the status screen shows +0x08 (u32 seconds since 1999-01-01 00:00, the same clock as the save header).
+// +0x8C/+0x8E/+0x90 are a day count from 1999-01-02 (= floor(+0x08 / 86400) - 1 in 49 of 49 real records); keep them in step.
+function recDay(b,off){const s=rd(b,off+8,4);return s?Math.floor(s/86400)-1:rd(b,off+F.date,2)}
+function writeDate(b,off,e){if(e.date==null)return;for(const o of [0x8C,0x8E,0x90])wr(b,off+o,2,e.date);
+  const s=rd(b,off+8,4), tod=s?s%86400:12*3600; wr(b,off+8,4,(e.date+1)*86400+tod)}
 function writeEq(b,off,e){EQ_SLOTS.forEach(([,so],k)=>{const v=e["eq"+k];if(v!=null)wr(b,off+so,4,v?0x80000000+v:0)})}
 function writeRec(b,off,m){
   wr(b,off+F.lv,2,m.lv); wr(b,off+F.exp,4,m.exp); wr(b,off+F.hp,2,m.hp); wr(b,off+F.ap,2,m.ap);
@@ -696,6 +715,8 @@ function makeZip(name,data){
   E.setUint32(0,0x06054b50,true);E.setUint16(8,1,true);E.setUint16(10,1,true);E.setUint32(12,cd.length,true);E.setUint32(16,lh.length+n,true);
   const out=new Uint8Array(lh.length+n+cd.length+22);out.set(lh,0);out.set(data,lh.length);out.set(cd,lh.length+n);out.set(eo,lh.length+n+cd.length);return out;
 }
+function dateToDay(s){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");if(!m)return null;const d=Math.round((Date.UTC(+m[1],+m[2]-1,+m[3])-Date.UTC(1999,0,2))/86400000);return d>=0&&d<=65535?d:null}
+function dayToISO(d){return dayToDate(d).replace(/\//g,"-")}
 function dayToDate(d){const t=new Date(Date.UTC(1999,0,2)+d*86400000);return t.getUTCFullYear()+"/"+String(t.getUTCMonth()+1).padStart(2,"0")+"/"+String(t.getUTCDate()).padStart(2,"0")}
 if(typeof module!=="undefined") module.exports={applyAdds,addNpc,npcList,calcHPAP,boxFree,rareEntry,pickTemplate,setGameVer,antTable,skillName,EQ_SLOTS,itemCountWith,itemGotWith,v17Signs,ITEM17,itemIn,antState,D,FDEF,parseSave,applyEdits,newEdits,fkey,fget,fset,checkHashes,fixHashes,sha256,split64,join64,eventState,makeZip,LEVEL_EXP,skillFor,nameBlock,nameProblem,writeName,NAMES,NAME_ID};
 
@@ -909,7 +930,7 @@ function card(m,i,checked){
   const h=el("div",{class:"mhead"},cb,el("label",{for:"sel-"+i,class:"name",text:cur(m,"name")}),
     el("span",{class:"muted small",text:gen+"代目・Lv上限 "+cap+"・幸福度上限 "+hm}),
     el("span",{class:"chip mono",text:"0x"+m.off.toString(16).toUpperCase()}),
-    el("span",{class:"chip",text:"入居 "+dayToDate(m.date)}));
+    el("span",{class:"chip",text:"入居 "+dayToDate(cur(m,"date"))}));
   const sk=cur(m,"skill"), stg=skillStage(cur(m,"antenna"),sk);
   h.append(el("span",{class:"chip"+(edits.members[m.off]&&edits.members[m.off].skill!=null?" warn":""),text:"技: "+(sk===1?"まだなし":skillName(sk))+(stg&&stg.now>0?"（"+stg.now+"/"+stg.max+"段階）":"")}));
   if(m.guest)h.append(el("span",{class:"chip warn",text:"ゲストの可能性"}));
@@ -917,6 +938,10 @@ function card(m,i,checked){
   if(addedOff().has(m.off))h.append(el("span",{class:"chip ok",text:"追加予定の激レア"}));
   const g=el("div",{class:"grid tight"});
   g.append(nameField(m,i));
+  {const di=el("input",{type:"date",id:"dt-"+i,min:"1999-01-02",max:"2178-06-06"});di.value=dayToISO(cur(m,"date"));
+   if(edits.members[m.off]&&edits.members[m.off].date!=null)di.classList.add("changed");
+   di.addEventListener("change",()=>{const d=dateToDay(di.value);if(d==null){di.value=dayToISO(cur(m,"date"));return}setField(m,"date",d);render();const a=$("dt-"+i);if(a)a.focus()});
+   g.append(el("label",{class:"f"},"入居日",di))}
   for(const [k,label,,min,max] of FIELDS){
     const inp=el("input",{type:"number",min:String(min),max:String(max),step:"1",id:"m"+i+"-"+k}); inp.value=cur(m,k);
     if(edits.members[m.off]&&edits.members[m.off][k]!=null)inp.classList.add("changed");
@@ -953,6 +978,9 @@ function card(m,i,checked){
       for(const [v,n] of opts)inp.append(el("option",{value:String(v),text:n}));
       const mx0=kind==="pattern"?patTbl().length-1:max;
       if(cur(m,k)>mx0)inp.append(el("option",{value:String(cur(m,k)),text:cur(m,k)+"（範囲外：単色で表示）"}));
+    }else if(kind==="tone"){inp=el("select",{id:"ap"+i+"-"+k});const L=k==="skin"?SKINNM:HAIRNM;
+      L.forEach((n,v)=>inp.append(el("option",{value:String(v),text:v+" "+n})));
+      if(cur(m,k)>max)inp.append(el("option",{value:String(cur(m,k)),text:cur(m,k)+"（範囲外：ゲームでは0番の色）"}));
     }else inp=el("input",{type:"number",min:"0",max:String(max),step:"1",id:"ap"+i+"-"+k});
     inp.value=String(cur(m,k)); if(edits.members[m.off]&&edits.members[m.off][k]!=null)inp.classList.add("changed");
     const mx=kind==="pattern"?patTbl().length-1:max;
@@ -964,6 +992,10 @@ function card(m,i,checked){
       else if(pv>0&&c1===c2)warn="体の色1と2が同じなので模様は見えません。";
       lg.append(el("label",{class:"f",style:"grid-column:span 2"},label+"（0〜"+mx+"）",row,warn?el("span",{class:"hint bad",text:warn}):el("span",{class:"hint",text:"見本の白 = 体の色1、黒 = 体の色2"})));continue}
     if(FACE[k]){faceField(fg,m,i,k,label,max,inp);continue}
+    if(kind==="tone"){const T=k==="skin"?SKINRGB:HAIRRGB, cv=cur(m,k), col=T[cv]||T[0];
+      const sw=el("span",{class:"tone","aria-hidden":"true"});sw.style.background=col;
+      const hint=k==="skin"?"色はゲームの色の表の値。名前は色から付けた呼び名。普通に生まれるのは 1・2・3 が多い":"色はゲームの色の表の値。名前は色から付けた呼び名。0〜5 が普通、6〜11 はめずらしい色";
+      lg.append(el("label",{class:"f"},label+"（0〜"+max+"）",el("div",{class:"ptnrow"},sw,inp),el("span",{class:"hint",text:hint})));continue}
     lg.append(el("label",{class:"f"},label+"（0〜"+max+"）",inp));
   }
   look.append(lg,fg,el("p",{class:"muted small",text:"頭と顔のパーツは「一覧」から絵で選べます。顔のパーツの絵はゲームの顔テクスチャから切り出したもの（顔の形の白い部分には肌の色、顔にかかる髪の茶色の部分には髪の色がつきます）、頭の絵は頭の模型を描いたものです。頭の形の名前はゲームに無いので、形から付けた呼び名です。うすく表示された番号は作成画面の一覧に出ないものです。範囲外の番号はゲーム側で0番に戻されます。体の色を変えると属性たいせいも変わります。"}));
@@ -973,16 +1005,17 @@ function card(m,i,checked){
 }
 function faceField(fg,m,i,k,label,max,inp){
   const f=FACE[k], v=cur(m,k), key=m.off+":"+k, isHead=k==="head";
+  const tint=k==="skintex"?SKINRGB[cur(m,"skin")]||SKINRGB[0]:k==="hair"?HAIRRGB[cur(m,"haircol")]||HAIRRGB[0]:null;
   const nm=n=>isHead?(D.HEADNAMES&&D.HEADNAMES[n]||""):"";
   const btn=el("button",{type:"button",class:"fpbtn",id:"fpb"+i+"-"+k,"aria-expanded":openFace[key]?"true":"false","aria-label":label+"の一覧を"+(openFace[key]?"閉じる":"開く"),text:openFace[key]?"閉じる":"一覧"});
   btn.addEventListener("click",()=>{openFace[key]=!openFace[key];render();const b=$("fpb"+i+"-"+k);if(b)b.focus()});
   const note=isHead?(v>=f[6]?"この番号には頭の模型がありません（0〜39 が使えます）":""):(v>=f[7]&&v<f[6]?"作成画面には出ない番号":v>=f[6]?"範囲外（ゲームでは0番）":f[8]);
   const cell=el("div",{class:"ff"},el("label",{for:"ap"+i+"-"+k,text:label+"（0〜"+max+"）"}),
-    el("div",{class:"fprow"},faceCanvas(k,v),inp,isHead?el("span",{class:"fpname",text:nm(v)}):null,btn),
+    el("div",{class:"fprow"},faceCanvas(k,v,tint),inp,isHead?el("span",{class:"fpname",text:nm(v)}):null,btn),
     note?el("span",{class:"hint"+(isHead&&v>=f[6]?" bad":""),text:note}):null);
   fg.append(cell);
   if(openFace[key]){const gr=el("div",{class:"fpgrid"+(isHead?" hd":""),role:"group","aria-label":label+"の一覧"});
-    for(let n=0;n<f[6];n++){const b=el("button",{type:"button",class:(n===v?"on":"")+(n>=f[7]?" un":""),title:label+" "+n+(nm(n)?"（"+nm(n)+"）":""),"aria-pressed":n===v?"true":"false"},faceCanvas(k,n),el("span",{text:isHead?n+" "+nm(n):String(n)}));
+    for(let n=0;n<f[6];n++){const b=el("button",{type:"button",class:(n===v?"on":"")+(n>=f[7]?" un":""),title:label+" "+n+(nm(n)?"（"+nm(n)+"）":""),"aria-pressed":n===v?"true":"false"},faceCanvas(k,n,tint),el("span",{text:isHead?n+" "+nm(n):String(n)}));
       b.addEventListener("click",()=>{setField(m,k,n);render();const a=$("ap"+i+"-"+k);if(a)a.focus()});gr.append(b)}
     fg.append(gr)}
 }
@@ -1381,7 +1414,8 @@ function changeList(){
   for(const m of parsed.members){const e=edits.members[m.off];if(!e)continue;
     if(e.name!=null)out.push([m.name+"・名前",m.name+" → "+e.name]);
     for(const [k,label] of FIELDS)if(e[k]!=null)out.push([m.name+"・"+label,fmt(m[k])+" → "+fmt(e[k])]);
-    for(const [k,label] of APPEAR)if(e[k]!=null)out.push([m.name+"・"+label,(k.startsWith("color")?D.COLORS[m[k]]+" → "+D.COLORS[e[k]]:m[k]+" → "+e[k])]);
+    for(const [k,label] of APPEAR)if(e[k]!=null)out.push([m.name+"・"+label,(k.startsWith("color")?D.COLORS[m[k]]+" → "+D.COLORS[e[k]]:k==="skin"?m[k]+" "+(SKINNM[m[k]]||"")+" → "+e[k]+" "+(SKINNM[e[k]]||""):k==="haircol"?m[k]+" "+(HAIRNM[m[k]]||"")+" → "+e[k]+" "+(HAIRNM[e[k]]||""):m[k]+" → "+e[k])]);
+    if(e.date!=null)out.push([m.name+"・入居日",dayToDate(m.date)+" → "+dayToDate(e.date)]);
     if(e.tenshin!=null)out.push([m.name+"・転身",TENSHIN[m.tenshin]+" → "+TENSHIN[e.tenshin]]);
     if(e.mon!=null)out.push([m.name+"・捕まえたモンスター",monLabel(m.mon)+" → "+monLabel(e.mon)]);
     if(e.antenna!=null)out.push([m.name+"・アンテナの種類",m.antenna+" → "+e.antenna+"（"+antName(e.antenna)+"）"]);
