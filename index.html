@@ -4,18 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>電波人間のRPG FREE! セーブエディタ</title>
+<meta name="description" content="3DS『電波人間のRPG FREE!』のセーブエディタ。MOD不要・ブラウザだけで savedata.bin を編集。解析報告書つき。">
 <meta property="og:title" content="電波人間のRPG FREE! セーブエディタ">
 <meta property="og:description" content="MOD不要・ブラウザで動く3DS『電波人間のRPG FREE!』のセーブエディタ。savedata.binを差し替えるだけ。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mamimu1107.github.io/denpa-free-save/">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:image" content="https://mamimu1107.github.io/denpa-free-save/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:image" content="https://mamimu1107.github.io/denpa-free-save/ogp.png">
 <style>
 body{font-family:system-ui,sans-serif;max-width:44rem;margin:2rem auto;padding:0 1rem;line-height:1.8;color:#222}
 h1{font-size:1.5rem}
 a.btn{display:block;text-align:center;padding:1rem;margin:1rem 0;background:#2b6cb0;color:#fff;text-decoration:none;border-radius:.5rem;font-weight:bold}
 a.pdf{background:#4a5568}
+a.gh{background:#24292f}
 .warn{background:#fffbea;border:1px solid #e0c060;padding:1rem;border-radius:.5rem}
 small{color:#666}
 </style>
@@ -26,6 +30,14 @@ small{color:#666}
 
 <a class="btn" href="editor.html">エディタを開く</a>
 <a class="btn pdf" href="report.pdf">解析報告書（PDF）</a>
+<a class="btn gh" href="https://github.com/mamimu1107/denpa-free-save">GitHub（ソース・不具合報告）</a>
+
+<h2 style="font-size:1.1rem">使い方</h2>
+<ol>
+<li>元の <code>savedata.bin</code> をバックアップ</li>
+<li>エディタを開いて読み込み、編集して保存</li>
+<li>ダウンロードした <code>savedata.bin</code> を元の場所に戻す</li>
+</ol>
 
 <div class="warn">
 <h2 style="margin-top:0;font-size:1.1rem">注意</h2>
