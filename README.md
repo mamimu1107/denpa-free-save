@@ -26,4 +26,4 @@
 - 不具合・要望は [Issues](https://github.com/mamimu1107/denpa-free-save/issues) へ。壊れたセーブを添付してもらえると助かります
 
 ## ライセンス
-MIT
+MIT適用されるのはコード部分のみ。ROM 由来のデータの権利は権利者に帰属
